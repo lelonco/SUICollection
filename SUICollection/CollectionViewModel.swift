@@ -23,17 +23,11 @@ protocol BaseCellContent: View {
     init(cellViewModel: ViewModel)
 }
 
-protocol AnyBaseCellViewModel: AnyObject {
-    var cellProvider: any CellProvider { get set }
-    
-    init(cellProvider: any CellProvider)
-}
-
-class BaseCellViewModel: AnyBaseCellViewModel, Identifiable {
+class BaseCellViewModel: Identifiable {
     
     var cellProvider: any CellProvider
     
-    required init(cellProvider: any CellProvider) {
+    init(cellProvider: any CellProvider) {
         self.cellProvider = cellProvider
         cellProvider.viewModel = self
     }

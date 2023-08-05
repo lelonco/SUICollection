@@ -21,10 +21,6 @@ class ColorCellViewModel: BaseCellViewModel {
         super.init(cellProvider: cellProvider)
     }
     
-    required init(cellProvider: any CellProvider) {
-        fatalError("init(cellProvider:) has not been implemented")
-    }
-    
 }
 
 struct ColorCell<VM: ColorCellViewModel>: BaseCellContent {
