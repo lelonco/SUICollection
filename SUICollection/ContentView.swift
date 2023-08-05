@@ -8,14 +8,16 @@
 import SwiftUI
 
 struct ContentView: View {
-    var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundColor(.accentColor)
-            Text("Hello, world!")
+    @ObservedObject var viewModel = CollectionViewModel()
+
+    var body: some SwiftUI.View {
+        List {
+            ForEach(viewModel.sections) { section in
+                section.view()
+            }
         }
-        .padding()
+        .listStyle(.plain)
+        .listRowSeparator(.hidden)
     }
 }
 
