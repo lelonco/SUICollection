@@ -9,78 +9,6 @@ import Combine
 import Foundation
 import SwiftUI
 
-protocol CellProvider: AnyObject {
-    var viewModel: BaseCellViewModel? { get set }
-        
-    @ViewBuilder
-    func view() -> AnyView
-}
-
-protocol BaseCellContent: View {
-    associatedtype ViewModel
-    var cellViewModel: ViewModel { get set }
-    
-    init(cellViewModel: ViewModel)
-}
-
-class BaseCellViewModel: Identifiable {
-    
-    var cellProvider: any CellProvider
-    
-    init(cellProvider: any CellProvider) {
-        self.cellProvider = cellProvider
-        cellProvider.viewModel = self
-    }
-}
-
-class GenericCellProvider<Cell: BaseCellContent, ViewModel: BaseCellViewModel>: CellProvider where ViewModel == Cell.ViewModel {
-    var viewModel: BaseCellViewModel?
-    
-    private func getView() -> AnyView {
-        if let viewModel = self.viewModel as? ViewModel {
-            return AnyView(Cell(cellViewModel: viewModel))
-        } else {
-            assertionFailure("Can't get or cast view model")
-            return AnyView(EmptyView())
-        }
-    }
-    
-    @ViewBuilder
-    func view() -> AnyView {
-        getView()
-    }
-}
-
-class SectionViewModel: ObservableObject, Identifiable {
-    @Published var title: String?
-    @Published var items: [BaseCellViewModel]
-    @Published var shouldShowHeader: Bool
-    
-    init(title: String? = nil, items: [BaseCellViewModel]) {
-        self.title = title
-        self.items = items
-        self.shouldShowHeader = title?.isEmpty == false
-    }
-    
-    @ViewBuilder
-    func view() -> some View {
-        if shouldShowHeader {
-            Text(title ?? "")
-                .padding(8)
-        }
-        
-        ScrollView(.horizontal, showsIndicators: false) {
-            LazyHStack {
-                ForEach(items) { item in
-                    item.cellProvider.view()
-                }
-            }
-        }
-        .listRowSeparator(.hidden)
-    }
-}
-
-
 class CollectionViewModel: ObservableObject {
     
     private var definedSections: [DefinedSections] = DefinedSections.allCases
@@ -92,7 +20,11 @@ class CollectionViewModel: ObservableObject {
     
     func buildSections() {
         sections = definedSections.map { defSection in
-            SectionViewModel(title: defSection.title, items: [ColorCellViewModel(),ColorCellViewModel(),ColorCellViewModel()])
+            SectionViewModel(
+                title: defSection.title,
+                items: [ColorCellViewModel(),ColorCellViewModel(),ColorCellViewModel()],
+                layout: defSection.layout
+            )
         }
         Timer.scheduledTimer(withTimeInterval: 10, repeats: false) { [weak self] _ in
             guard let self else { return }
@@ -109,7 +41,8 @@ class CollectionViewModel: ObservableObject {
                     let viewModel = ColorCellViewModel(color: $0, cellProvider: cellProvider)
                     cellProvider.viewModel = viewModel
                     return viewModel
-                }
+                },
+                layout: defSection.layout
             )
         }
     }
@@ -122,6 +55,21 @@ private extension CollectionViewModel {
         case liveContnetGroup
         case contentArea
         case promoPacket
+        
+        var layout: any AnyCollectionLayout {
+            switch self {
+            case .promo:
+                return PromoZoneLayout()
+            case .contentGorup:
+                return HorizontalLayout()
+            case .liveContnetGroup:
+                return HorizontalLayout()
+            case .contentArea:
+                return HorizontalLayout()
+            case .promoPacket:
+                return HorizontalLayout()
+            }
+        }
         
         var title: String? {
             switch self {

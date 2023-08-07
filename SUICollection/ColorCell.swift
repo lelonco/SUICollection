@@ -33,8 +33,6 @@ struct ColorCell<VM: ColorCellViewModel>: BaseCellContent {
     var body: some View {
         Rectangle()
             .fill(cellViewModel.color ?? .gray)
-            .cornerRadius(10)
-            .frame(width: 200, height: 300)
-        
+            .cornerRadius(10)        
     }
 }
